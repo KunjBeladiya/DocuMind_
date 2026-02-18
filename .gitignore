@@ -1,0 +1,111 @@
+# ------------------------------
+# Python
+# ------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ------------------------------
+# Virtual Environment
+# ------------------------------
+venv/
+env/
+ENV/
+.venv/
+
+# ------------------------------
+# Environment Variables
+# ------------------------------
+.env
+.env.*
+*.env
+
+# ------------------------------
+# Logs
+# ------------------------------
+*.log
+logs/
+
+# ------------------------------
+# SQLite Database
+# ------------------------------
+*.sqlite3
+*.db
+
+# ------------------------------
+# IDE / Editor
+# ------------------------------
+
+# VS Code
+.vscode/
+
+# PyCharm / IntelliJ
+.idea/
+*.iml
+
+# ------------------------------
+# OS Files
+# ------------------------------
+.DS_Store
+Thumbs.db
+
+# ------------------------------
+# Testing / Coverage
+# ------------------------------
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+pytest_cache/
+
+# ------------------------------
+# Migrations (Optional - if Alembic auto files unwanted)
+# ------------------------------
+# alembic/versions/*.pyc
+
+# ------------------------------
+# FastAPI specific
+# ------------------------------
+*.pid
+*.pid.lock
+
+# ------------------------------
+# Docker
+# ------------------------------
+*.tar
+docker-compose.override.yml
+
+# ------------------------------
+# mypy
+# ------------------------------
+.mypy_cache/
+
+# ------------------------------
+# Ruff / Lint
+# ------------------------------
+.ruff_cache/
+
+# ------------------------------
+# Node (if frontend included)
+# ------------------------------
+node_modules/

@@ -6,6 +6,8 @@ from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
+from chromadb import Client
+from chromadb.config import Settings
 
 from src.core.config import settings
 
@@ -81,3 +83,11 @@ def ask_question(chat_id: str, question: str):
     )
 
     return rag_chain.invoke(question)
+
+
+def delete_chat_collection(chat_id: str):
+    client = Client(Settings(persist_directory="./chroma_db"))
+    try:
+        client.delete_collection(name=f"chat_{chat_id}")
+    except Exception:
+        pass

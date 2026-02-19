@@ -6,9 +6,9 @@ from src.api.dependencies import get_current_user
 from src.models.chat import Chat
 from src.models.pdf import PDFDocument
 from src.models.message import Message
-from src.schemas.chat import ChatCreate, QuestionRequest
+from src.schemas.chat import ChatCreate, QuestionRequest ,ChatResponse , ChatUpdate , MessageResponse
 from src.services.cloudinary_service import upload_pdf
-from src.services.rag_service import process_pdf, ask_question
+from src.services.rag_service import process_pdf, ask_question , delete_chat_collection
 import os
 import uuid
 import shutil
@@ -114,3 +114,120 @@ async def ask_chat(
     await db.commit()
 
     return {"answer": answer}
+
+
+@router.get("/", response_model=list[ChatResponse])
+async def list_chats(
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    result = await db.execute(
+        select(Chat)
+        .where(Chat.user_id == current_user.id)
+        .order_by(Chat.created_at.desc())
+    )
+
+    chats = result.scalars().all()
+    return chats
+
+
+@router.get("/{chat_id}", response_model=ChatResponse)
+async def get_chat(
+    chat_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    result = await db.execute(select(Chat).where(Chat.id == chat_id))
+    chat = result.scalar_one_or_none()
+
+    if not chat or chat.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+
+    return chat
+
+
+@router.get("/{chat_id}/messages", response_model=list[MessageResponse])
+async def get_chat_messages(
+    chat_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    result = await db.execute(select(Chat).where(Chat.id == chat_id))
+    chat = result.scalar_one_or_none()
+
+    if not chat or chat.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+
+    result = await db.execute(
+        select(Message)
+        .where(Message.chat_id == chat_id)
+        .order_by(Message.created_at.asc())
+    )
+
+    messages = result.scalars().all()
+    return messages
+
+
+
+@router.patch("/{chat_id}", response_model=ChatResponse)
+async def update_chat(
+    chat_id: str,
+    update_data: ChatUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    result = await db.execute(select(Chat).where(Chat.id == chat_id))
+    chat = result.scalar_one_or_none()
+
+    if not chat or chat.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+
+    chat.title = update_data.title
+
+    await db.commit()
+    await db.refresh(chat)
+
+    return chat
+
+
+
+@router.delete("/{chat_id}")
+async def delete_chat(
+    chat_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    result = await db.execute(select(Chat).where(Chat.id == chat_id))
+    chat = result.scalar_one_or_none()
+
+    if not chat or chat.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+
+    await db.delete(chat)
+    await db.commit()
+
+    # Delete Chroma collection
+    delete_chat_collection(chat_id)
+
+    return {"message": "Chat deleted successfully"}
+
+
+
+@router.get("/{chat_id}/documents")
+async def list_documents(
+    chat_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    result = await db.execute(select(Chat).where(Chat.id == chat_id))
+    chat = result.scalar_one_or_none()
+
+    if not chat or chat.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+
+    result = await db.execute(
+        select(PDFDocument).where(PDFDocument.chat_id == chat_id)
+    )
+
+    documents = result.scalars().all()
+    return documents

@@ -134,14 +134,14 @@ export function QuizView() {
   const currentQuizzes = activeChatId ? quizzes[activeChatId] || [] : [];
 
   return (
-    <div className="h-full overflow-y-auto px-6 py-8 relative">
+    <div className="h-full overflow-y-auto px-6 pb-8 relative">
       <AnimatePresence mode="wait">
         
         {/* ======================= DASHBOARD ======================= */}
         {viewState === 'DASHBOARD' && (
           <motion.div key="dashboard" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             {/* Header */}
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between my-8">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/20 flex items-center justify-center">
                   <Trophy className="w-5 h-5 text-amber-400" />

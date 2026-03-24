@@ -57,3 +57,16 @@ export interface ApiError {
 export type ActiveTab = 'chat' | 'summary' | 'quiz';
 
 export type SummaryType = 'short' | 'detailed' | 'bullet';
+
+// Summary types
+export interface SummaryCreate {
+  type: string;
+}
+
+export interface SummaryResponse {
+  id: string;
+  chat_id: string;
+  type: string;
+  content: string;
+  created_at: string;
+}

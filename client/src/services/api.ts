@@ -9,6 +9,8 @@ import type {
   MessageResponse,
   QuestionRequest,
   ChatUpdate,
+  SummaryCreate,
+  SummaryResponse,
 } from '../types';
 import { useAuthStore } from '../store/authStore';
 
@@ -93,6 +95,18 @@ export const chatsApi = {
 
   listDocuments: (chatId: string): Promise<unknown> =>
     api.get(`/chats/${chatId}/documents`).then((r) => r.data),
+};
+
+// ─── Summaries ─────────────────────────────────────────────────────────────
+export const summariesApi = {
+  listByChat: (chatId: string): Promise<SummaryResponse[]> =>
+    api.get<SummaryResponse[]>(`/summaries/chats/${chatId}`).then((r) => r.data),
+
+  create: (chatId: string, data: SummaryCreate): Promise<SummaryResponse> =>
+    api.post<SummaryResponse>(`/summaries/chats/${chatId}`, data).then((r) => r.data),
+
+  delete: (summaryId: string): Promise<void> =>
+    api.delete(`/summaries/${summaryId}`).then(() => undefined),
 };
 
 export default api;

@@ -91,3 +91,49 @@ def delete_chat_collection(chat_id: str):
         client.delete_collection(name=f"chat_{chat_id}")
     except Exception:
         pass
+
+
+def generate_summary(chat_id: str, summary_type: str):
+
+    vectorstore = get_vectorstore(chat_id)
+    retriever = vectorstore.as_retriever(search_kwargs={"k": 10})
+
+    if summary_type == "SHORT":
+        instruction = "Give a short summary in 5-6 lines."
+    elif summary_type == "DETAILED":
+        instruction = "Give a detailed explanation covering all important points."
+    elif summary_type == "BULLET":
+        instruction = "Summarize in clear bullet points."
+    else:
+        raise ValueError("Invalid summary type")
+
+    prompt = ChatPromptTemplate.from_template(
+        """
+        You are an AI assistant.
+
+        Based on the context below, generate a summary.
+
+        Context:
+        {context}
+
+        Instruction:
+        {instruction}
+        """
+    )
+
+    llm = get_llm()
+
+    def format_docs(docs):
+        return "\n\n".join(doc.page_content for doc in docs)
+
+    chain = (
+        {
+            "context": retriever | format_docs,
+            "instruction": lambda _: instruction
+        }
+        | prompt
+        | llm
+        | StrOutputParser()
+    )
+
+    return chain.invoke("Provide a comprehensive summary of the main topics in this document.")

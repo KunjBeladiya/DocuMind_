@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from src.api import auth
 from src.api import chat
 from src.api import summary
+from src.api import quiz
 
 app = FastAPI()
 
@@ -21,3 +22,4 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(chat.router)
 app.include_router(summary.router)
+app.include_router(quiz.router)

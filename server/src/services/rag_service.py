@@ -9,6 +9,7 @@ from langchain_core.runnables import RunnablePassthrough
 from chromadb import Client
 from chromadb.config import Settings
 
+from pydantic import BaseModel, Field
 from src.core.config import settings
 
 
@@ -137,3 +138,91 @@ def generate_summary(chat_id: str, summary_type: str):
     )
 
     return chain.invoke("Provide a comprehensive summary of the main topics in this document.")
+
+import json
+
+class QuizOptionGen(BaseModel):
+    text: str
+    is_correct: bool
+
+class QuizQuestionGen(BaseModel):
+    question: str
+    options: list[QuizOptionGen]
+
+class QuizGenData(BaseModel):
+    title: str
+    questions: list[QuizQuestionGen]
+
+def generate_quiz_data(chat_id: str, count: int, difficulty: str) -> QuizGenData:
+    vectorstore = get_vectorstore(chat_id)
+    retriever = vectorstore.as_retriever(search_kwargs={"k": 15})
+
+    prompt_template = """You are an expert educational AI assistant.
+
+Based on the context below, generate a multiple-choice quiz.
+
+Rules you MUST follow:
+- Generate EXACTLY {count} questions.
+- Difficulty level: {difficulty}
+- Each question MUST have EXACTLY 4 answer options (A, B, C, D).
+- EXACTLY ONE option per question must be the correct answer.
+- Make questions based ONLY on information found in the context.
+- Create a concise title for the quiz.
+
+You MUST respond with ONLY a valid JSON object matching this exact format, with no explanation or markdown:
+{{
+  "title": "Quiz Title Here",
+  "questions": [
+    {{
+      "question": "Question text here?",
+      "options": [
+        {{"text": "Option A text", "is_correct": false}},
+        {{"text": "Option B text", "is_correct": true}},
+        {{"text": "Option C text", "is_correct": false}},
+        {{"text": "Option D text", "is_correct": false}}
+      ]
+    }}
+  ]
+}}
+
+Context:
+{context}
+"""
+
+    def format_docs(docs):
+        return "\n\n".join(doc.page_content for doc in docs)
+
+    query = f"Generate {count} {difficulty} difficulty quiz questions about the core concepts in this document."
+    
+    # Retrieve relevant context
+    docs = retriever.invoke(query)
+    context = format_docs(docs)
+
+    # Build the final prompt string
+    final_prompt = prompt_template.format(
+        count=count,
+        difficulty=difficulty,
+        context=context
+    )
+
+    # Call the LLM directly  
+    llm = get_llm()
+    response = llm.invoke(final_prompt)
+    raw = response.content.strip()
+
+    # Strip markdown fences if the model adds them
+    if raw.startswith("```"):
+        raw = raw.split("```")[1]
+        if raw.startswith("json"):
+            raw = raw[4:]
+        raw = raw.strip()
+
+    # Parse and validate
+    data = json.loads(raw)
+
+    questions = []
+    for q in data["questions"]:
+        options = [QuizOptionGen(text=o["text"], is_correct=o["is_correct"]) for o in q["options"]]
+        questions.append(QuizQuestionGen(question=q["question"], options=options))
+
+    return QuizGenData(title=data["title"], questions=questions)

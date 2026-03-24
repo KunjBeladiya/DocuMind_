@@ -11,6 +11,10 @@ import type {
   ChatUpdate,
   SummaryCreate,
   SummaryResponse,
+  QuizGenerateRequest,
+  QuizSubmitRequest,
+  QuizResponse,
+  QuizResultResponse,
 } from '../types';
 import { useAuthStore } from '../store/authStore';
 
@@ -107,6 +111,24 @@ export const summariesApi = {
 
   delete: (summaryId: string): Promise<void> =>
     api.delete(`/summaries/${summaryId}`).then(() => undefined),
+};
+
+// ─── Quizzes ───────────────────────────────────────────────────────────────
+export const quizzesApi = {
+  listByChat: (chatId: string): Promise<QuizResponse[]> =>
+    api.get<QuizResponse[]>(`/quizzes/chats/${chatId}`).then((r) => r.data),
+
+  get: (quizId: string): Promise<QuizResponse> =>
+    api.get<QuizResponse>(`/quizzes/${quizId}`).then((r) => r.data),
+
+  generate: (chatId: string, data: QuizGenerateRequest): Promise<QuizResponse> =>
+    api.post<QuizResponse>(`/quizzes/chats/${chatId}/generate`, data).then((r) => r.data),
+
+  submit: (quizId: string, data: QuizSubmitRequest): Promise<QuizResultResponse> =>
+    api.post<QuizResultResponse>(`/quizzes/${quizId}/submit`, data).then((r) => r.data),
+
+  delete: (quizId: string): Promise<void> =>
+    api.delete(`/quizzes/${quizId}`).then(() => undefined),
 };
 
 export default api;

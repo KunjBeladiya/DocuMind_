@@ -70,3 +70,46 @@ export interface SummaryResponse {
   content: string;
   created_at: string;
 }
+
+// Quiz types
+export type QuizDifficulty = 'EASY' | 'MEDIUM' | 'HARD';
+export type QuizStatus = 'CREATED' | 'COMPLETED';
+
+export interface QuizGenerateRequest {
+  count: number;
+  difficulty: QuizDifficulty;
+}
+
+export interface QuizSubmitRequest {
+  answers: Record<string, string>;
+}
+
+export interface QuizOptionResponse {
+  id: string;
+  text: string;
+}
+
+export interface QuizQuestionResponse {
+  id: string;
+  question: string;
+  options: QuizOptionResponse[];
+}
+
+export interface QuizResponse {
+  id: string;
+  chat_id: string;
+  title: string;
+  difficulty: QuizDifficulty;
+  status: QuizStatus;
+  score: number | null;
+  total_marks: number | null;
+  created_at: string;
+  questions?: QuizQuestionResponse[];
+}
+
+export interface QuizResultResponse {
+  score: number;
+  total_marks: number;
+  status: QuizStatus;
+  correct_answers: Record<string, string>;
+}
